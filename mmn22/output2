@@ -1,0 +1,128 @@
+ __________________________________________________
+|Please enter a commands accordingly:              |
+|Each commands will execute after typed separately |
+|             ✯ The commands are:✯                 |
+|->read_set                                        |
+|->print_set                                       |
+|->union_set                                       |
+|->intersect_set                                   |
+|->sub_set                                         |
+|->symdiff_set                                     |
+|->stop                                            |
+|__________________________________________________|
+
+
+please enter command:
+
+enterd command:
+read_set SETG, 3, 6, 5, 4, 4,-1
+
+Undefined set name
+
+
+please enter command:
+
+enterd command:
+read_set setA, 3, 6, 5, 4, 4,-1
+
+Undefined set name
+
+
+please enter command:
+
+This command doesn't exist!
+
+
+please enter command:
+
+This command doesn't exist!
+
+
+please enter command:
+
+enterd command:
+read_set SETB, 45, 567, 34,-1
+
+Invalid set member - value out of range
+
+
+please enter command:
+
+enterd command:
+read_set SETA, 45, 56, 45,34
+Missing last member -1
+
+please enter command:
+
+enterd command:
+read_set SETA, 45 ,-3, 2, 45, 34,-1
+
+Invalid set member - value out of range
+
+
+please enter command:
+
+enterd command:
+read_set SETA, 45, 2, xyz, 34,-1
+
+Invalid set member - not an integer
+
+
+please enter command:
+
+enterd command:
+read_set SETA, 45, 2, 24.0, 34, -1
+
+Invalid set member - not an integer
+
+
+please enter command:
+
+enterd command:
+union_set SETC, SETA
+
+Missing Comma
+
+Undefined set name
+
+
+please enter command:
+
+enterd command:
+union_set SETC, SETA, SETB,
+
+
+please enter command:
+
+enterd command:
+print_set SETC, SETD
+
+Extraneous text after end of command
+
+
+please enter command:
+
+enterd command:
+sub_set SETF, , SETD, SETA
+
+Undefined set name
+
+
+please enter command:
+
+enterd command:
+intersect_set SETF SETD  SETA
+
+Missing Comma
+
+Undefined set name
+
+
+please enter command:
+
+This command doesn't exist!
+
+
+please enter command:
+
+end of file before stop command.
