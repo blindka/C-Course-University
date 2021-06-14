@@ -1,7 +1,8 @@
 /*
 Kfir Sibirsky	316317221
+Eyal Haimov
 =====================================================================================================
-
+This file contains...
 =====================================================================================================
 */
 #include "utils.h"
@@ -13,8 +14,10 @@ instruction_list *code_image;
 directive_list *data_image;
 
 
-/* setting the values to create the table from page 22 in the course booklet. */
-instruction instructions[NUM_OF_INSTRUCTIONS] = {			
+/*--------------------------------------------------------------------------------------------
+instructions: Machine instruction table from page 19 in the course booklet.
+--------------------------------------------------------------------------------------------*/
+machine_instruction instructions[NUM_OF_INSTRUCTIONS] = {			
 {"add",'R',1,0},
 {"sub",'R',2,0},
 {"and",'R',3,0},
@@ -43,91 +46,29 @@ instruction instructions[NUM_OF_INSTRUCTIONS] = {
 {"call",'J',0,32},
 {"stop",'J',0,63}
 };
+/*--------------------------------------------------------------------------------------------
+directives: Directives names.
+--------------------------------------------------------------------------------------------*/
 char *directives[NUM_OF_DIRECTIVES] = {".db",".dh",".dw",".asciz",".entry",".extern"};
 
 
-/* this function converts an integer to a binary string. */
-void int_to_bin_str(int n, int len, char *str)
-{
-    /* Possible numbers representable by len bits is:
-     * -((2^len)/2), ... , -2, -1, 0, 1, 2, ... , ((2^len/2)-1)
-     * Meaning, the possible range of numbers is: [-((2^len)/2) , ((2^len/2)-1)]
-     */
-    char bin[33]="";
-    int i = len-1;
-    
-	while(i>=0)
-    {
-        (n&(1u<<i--))?strcat(bin, "1"):strcat(bin, "0");
-    }
-    strncpy(str,bin,len);
-}
 
-void print_instruction(instruction_node *i) {
-    char num_bin[80]="";
-    if(i->R != NULL)
-        int_to_bin_str(*(int*)i->R,32,num_bin);
-    else if(i->I != NULL)
-        int_to_bin_str(*(int*)i->I,32,num_bin);
-    else if(i->J != NULL)
-        int_to_bin_str(*(int*)i->J,32,num_bin);
 
-    printf("%04d|%s|",i->address,num_bin);
-    (i->partial.bit==1? printf("  NO!   |\n"):printf("  YES   |\n"));
-}
-
-void print_instruction_list(instruction_list *ci) {
-    instruction_node *temp = ci->head;
-    if(ci->count==0)
-    {
-        printf("code image empty.\n");
-        return;
-    }
-    puts("\naddr|     machine code  (binary)     |complete|");
-    while (temp != NULL) {
-        print_instruction(temp);
-        temp = temp->next;
-    }
-}
-
-void print_directive(directive_node *d) {
-    char num_bin[80]="";
-    if(d->_8_bit != NULL)
-        int_to_bin_str(*(int*)d->_8_bit,8,num_bin);
-    else if(d->_16_bit != NULL)
-        int_to_bin_str(*(int*)d->_16_bit,16,num_bin);
-    else if(d->_32_bit != NULL)
-        int_to_bin_str(*(int*)d->_32_bit,32,num_bin);
-    printf("%04d|%-32s|\n",d->address,num_bin);
-}
-
-void print_directive_list(directive_list *di) {
-    directive_node *temp = di->head;
-    if(di->count==0)
-    {
-        printf("data image empty.\n");
-        return;
-    }
-    puts("\naddr|     machine code  (binary)     |");
-    while (temp != NULL) {
-        print_directive(temp);
-        temp = temp->next;
-    }
-}
-
-/* Given a reference (pointer to pointer) to the head
-   of a list and an int, appends a new node at the end  */
+/*--------------------------------------------------------------------------------------------
+add_to_code_image: Create a new instruction node of given type (i_type = R / I / J) according
+                   to a given index (i_idx) to the instruction table.
+                   The new node consists of the corresponding given operands 
+                   (oprnd1 / oprnd2 / oprnd 3 / label) to the expected operands of the 
+                   instruction at i_idx.
+                   Afterwards, append the new node to the end of the linked list of
+                   instructions (ci = code image)
+--------------------------------------------------------------------------------------------*/
 void add_to_code_image (instruction_list *ci, int i_type,int i_idx, int oprnd1, int oprnd2, int oprnd3,symbol_list * symbols, char * label)
 {
+	int cur = 0;
     instruction_node *new_node = (instruction_node*) malloc(sizeof(instruction_node));
     instruction_node *last = ci->head;
     new_node->partial.bit = 0;
-    printf("%c\n",i_type);
-    printf("%d\n",i_idx);
-    printf("%d\n",oprnd1);
-    printf("%d\n",oprnd2);
-    printf("%d\n",oprnd3);
-
     if(i_type == 'R')
     {
         R_instruction * r = (R_instruction*) malloc(sizeof(R_instruction));
@@ -195,7 +136,6 @@ void add_to_code_image (instruction_list *ci, int i_type,int i_idx, int oprnd1, 
         j->reg=0;
         if(i_idx>=23 && i_idx<=25)
         {
-            printf("label=|%s|\n",label);
             if(label[0]!='\0')/* reg = 0 */
             {
                 int label_addr = -7;
@@ -223,7 +163,7 @@ void add_to_code_image (instruction_list *ci, int i_type,int i_idx, int oprnd1, 
             else
             {
                 if(i_idx==23)
-                {            printf("lssssssabel=|%s|\n",label);
+                {
                     j->reg=1;
                     j->address=oprnd1;
                 }
@@ -240,21 +180,33 @@ void add_to_code_image (instruction_list *ci, int i_type,int i_idx, int oprnd1, 
     new_node->address = IC;
     if (ci->count == 0)
        ci->head = new_node;
-    else {
-        while (last->next != NULL)
-            last = last->next;
+    else 
+    {
+        for(cur=0;cur<(ci->count)-1;cur++)
+		{
+		    last = last->next;
+		}
         last->next = new_node;
     }
     ci->count++;
 }
-/* Given a reference (pointer to pointer) to the head
-   of a list and an int, appends a new node at the end  */
+/*--------------------------------------------------------------------------------------------
+add_to_data_image: Create a new directive node of (8 bit / 16 bit / 32 bit) according
+                   to a given index (d_idx) to the directive table.
+                   The new node consists of the corresponding given number (to_store) 
+                   to the expected operand of the directive at d_idx.
+                   Afterwards, append the new node to the end of the linked list of
+                   directives (di = data image)
+--------------------------------------------------------------------------------------------*/
 void add_to_data_image (directive_list *di, int d_idx, int to_store)
 {
+	int cur =0;
     directive_node *new_node = (directive_node*) malloc(sizeof(directive_node));
     directive_node *last = di->head;
+	
     if(d_idx == 0 || d_idx == 3)/* .db / .asciz */
     {
+
         _8_bit_directive  * _8b = (_8_bit_directive*) malloc(sizeof(_8_bit_directive));
         _8b->data = to_store;
         new_node->_8_bit = _8b;
@@ -277,54 +229,32 @@ void add_to_data_image (directive_list *di, int d_idx, int to_store)
         new_node->_16_bit = NULL;
         new_node->_32_bit = _32b;
     }
+
     new_node->address = DC;
     if (di->count == 0)
        di->head = new_node;
-    else {
-        while (last->next != NULL)
-            last = last->next;
+    else
+    {
+        for(cur=0;cur<(di->count)-1;cur++)
+		{
+		    last = last->next;
+		}
         last->next = new_node;
     }
     di->count++;
 }
 
-void print_symbol(symbol *s) {
-	printf("\t%s\t|\t%d\t|\t",s->name,s->address);
-	switch (s->type) {
-		case EXTERNAL:
-			puts("external");
-			return;
-		case DATA:
-			puts("data");
-			return;
-		case CODE:
-			puts("code");
-			return;
-		case CODE_AND_ENTRY:
-			puts("code, entry");
-			return;
-		case DATA_AND_ENTRY:
-			puts("data, entry");
-			return;
-	}
-}
-
-void print_symbol_list(symbol_list *st) {
-    symbol *temp = st->head;
-    printf("--------------------------------------------------\n");
-	printf("\tSYMBOL\t|VALUE (decimal)|\tATTRIBUTES\n");
-	printf("--------------------------------------------------\n");
-    while (temp != NULL) {
-        print_symbol(temp);
-        temp = temp->next;
-    }
-}
-/* Given a reference (pointer to pointer) to the head
-   of a list and an int, appends a new node at the end  */
+/*--------------------------------------------------------------------------------------------
+add_to_symbol_table: Create a new symbol node, which consists of the corresponding given 
+                     operands (name = name, address = addr, type = ty).
+                     Afterwards, append the new node to the end of the linked list of
+                     symbols (st = symbol table)
+--------------------------------------------------------------------------------------------*/
 void add_to_symbol_table (symbol_list *st, char * name, int addr, sym_type ty)
 {
     symbol * new_node = (symbol*) malloc(sizeof(symbol));
     symbol *last = st->head;
+    int cur = 0;
     strcpy(new_node->name,name);
     new_node->address  = addr;
     new_node->type  = ty;
@@ -332,9 +262,12 @@ void add_to_symbol_table (symbol_list *st, char * name, int addr, sym_type ty)
  
      if (st->count == 0)
        st->head = new_node;
-    else {
-        while (last->next != NULL)
-            last = last->next;
+	else
+	{
+        for(cur=0;cur<(st->count)-1;cur++)
+		{
+		    last = last->next;
+		}
         last->next = new_node;
     }
     st->count++;
@@ -342,12 +275,17 @@ void add_to_symbol_table (symbol_list *st, char * name, int addr, sym_type ty)
     
 }
 
-
+/*--------------------------------------------------------------------------------------------
+increase_address_to_data: Adds the value of ICF to the address of each symbol in the symbol
+                          table which characterized as "data". also, add the value of ICF to
+                          the address of each node in the linked list of directives 
+                          (data image)
+--------------------------------------------------------------------------------------------*/
 void increase_address_to_data(symbol_list *st, directive_list *di)
 {
     symbol *s = st->head;
 	directive_node *d = di->head;
-    while (s != NULL) 
+    while (s != NULL) /*change loops to work with count instead*/
     {
         if(s->type==DATA)
         	s->address+=ICF;
@@ -360,23 +298,22 @@ void increase_address_to_data(symbol_list *st, directive_list *di)
 	}
 }
 
-/**
- * Preforms the first pass on the given file, searching for most of the syntax errors,
- * and translating most of the .as file into machine code
- * @param fptr - a pointer to the given file
- * @return ERROR or OK, according to the correctness of the file's syntax
- */
+/*--------------------------------------------------------------------------------------------
+first_pass: performs the first pass of the assembler on a given file (fptr).
+            Returns 1 passed successfully, -1 if not.
+--------------------------------------------------------------------------------------------*/
 int first_pass(FILE *fptr)
 {
     char line[MAX_LINE_LEN]="",first[MAX_LABEL_LEN]="",second[MAX_LABEL_LEN]="", cpy_str[MAX_LINE_LEN]="", *cpy_ptr, *sus;
     int c=0,count = 0, status = 0, error = 0,i=0,first_char_after_colon='\0',line_num=1;
     int operands[3];
+    int empty_file = 0;
 	symbol_table = calloc(1, sizeof(symbol_list));
 	code_image = calloc(1, sizeof(instruction_list));
 	data_image = calloc(1, sizeof(directive_list));
-operands[0]=0;
-operands[1]=0;
-operands[2]=0;
+	operands[0]=0;
+	operands[1]=0;
+	operands[2]=0;
     IC = 100;
     DC = 0;
     for(line_num = 1; fgets(line, MAX_LINE_LEN, fptr); line_num++) /* Scanning through each line of the file */
@@ -402,6 +339,7 @@ operands[2]=0;
 		{
 			continue;
 		}
+		empty_file = 1;
 		while(count<strlen(cpy_ptr) && !isspace(cpy_ptr[count])) {
 	    /* getting first "token". (sus label) */
 	    count++;
@@ -445,13 +383,11 @@ operands[2]=0;
 			count = 0;
 			sus = second;
 	        first[strlen(first)-1]='\0';
-	        printf("first(label)=|%s|\n",first);
 		}
 		/* as of now, either:
 		 * sus = second (because valid label).
 		 * OR
 		 * sus = first (because NO label).  */
-	 	printf("sus=|%s|\n",sus);
 		if(!strcmp(sus, ".db") || !strcmp(sus, ".dh") || !strcmp(sus, ".dw") || !strcmp(sus, ".asciz"))
 		{
 		    long temp_num=0;
@@ -536,7 +472,6 @@ operands[2]=0;
 		   	                DC+=4;
 			   		    }
 			            num[0]='\0';
-			            print_directive_list(data_image);
 			    	}
 		        	else
 		        	{
@@ -578,7 +513,7 @@ operands[2]=0;
 		                }
 		        	}/*end else*/    	
 		        }/*end while*/
-	   		} else {
+	   		} else { /*asciz*/
 	   	        int j=0;
 	   	        printf("cpy_ptr=|%s|\n",cpy_ptr);
 		    	if(cpy_ptr[j]=='\"')/* opening quotation mark found. */
@@ -586,16 +521,16 @@ operands[2]=0;
 		            j++;
 		            while(j < strlen(cpy_ptr) && cpy_ptr[j]!='\"')
 		            {
+		                printf("cpy_ptr[%d]=|%c|\n",j,cpy_ptr[j]);
 		                if(!isprint(cpy_ptr[j]))
 		            	{
 		                    printf("ERROR! character that has the value %d (decimal) is not a printable ascii character.\n",cpy_ptr[j]);
 		                    error=ERROR;
 							continue;
 		            	}
-		                printf("cpy_ptr[%d]=|%c|\n",j,cpy_ptr[j]);
         	   		    add_to_data_image (data_image, 3, cpy_ptr[j]);
-			            print_directive_list(data_image);
             	   		/* add cpy_ptr[j] to DATA IMAGE (MACHINE CODE). */
+
 		                DC++;
 		                j++;
 		            }
@@ -606,7 +541,6 @@ operands[2]=0;
 						continue;
 		            }
     	   		    add_to_data_image (data_image, 0,0);
-		            print_directive_list(data_image);
 	                DC++;
 		            j++;/* closing quotation mark found. */
 		        	while(j<strlen(cpy_ptr) && isspace(cpy_ptr[j]))
@@ -685,19 +619,6 @@ operands[2]=0;
 			}
 			else
 			{
-				/* we know which instruction is it.(it is instructions[i].name) 
-				 *	-	R?
-				 *		--	add?/sub?/and?/or?/nor? 	 (3 operands: $reg,$reg,$reg)   ✔
-				 *		--	move?/mvhi?/mvlo?			 (2 operands: $reg,$reg)        ✔
-				 *	-	I?
-				 *		--	addi?/subi?/andi?/ori?/nori? (3 operands: $reg,immed,$reg)  ✔
-				 *		--	bne?/beq?/blt?/bgt?			 (3 operands: $reg,$reg,label)  ✔
-				 *		--	lb?/sb?/lw?/sw?/lh?/sh?		 (3 operands: $reg,immed,$reg)  ✔
-				 *	-	J?
-				 *		--	jmp?						 (1 operand: label / $reg)      ✔
-				 *		--	la?							 (1 operand: label)             ✔
-				 *		--	call?						 (1 operand: label)             ✔
-				 *		--	stop?						 (0 operands = NO OPERANDS!)    ✔   */
 				int num_of_operands, operands_expected;
                 int ops=0;
 		        char num[80]="", t[1]="", label_operand[MAX_LABEL_LEN]="";
@@ -705,7 +626,6 @@ operands[2]=0;
 				if (status == 1) 
 				{
 					add_to_symbol_table(symbol_table, first, IC, CODE);
-				    print_symbol_list(symbol_table);
 		        }
 		        switch (i)
 		        {
@@ -906,13 +826,11 @@ operands[2]=0;
 						    {
 						    	num_of_operands = 1;
 						    	operands_expected = 1;
-								/* although la / call build machine code and continue;*/
 						    }
 						    if(i==26)
 						    {
 						    	num_of_operands = 0;
 						    	operands_expected = 0;
-								/* although stop build machine code and continue;*/
 						    }
 						}
 				    	if(num_of_operands<operands_expected)
@@ -921,17 +839,6 @@ operands[2]=0;
 			                error=ERROR;
 						    continue;
 				        }
-					    /* i = 0-4   reached here no problem.
-					     * i = 5-7   reached here no problem. 
-					     * i = 13-16 reached here no problem. 
-					     * i = 23    reached here no problem. 
-					     * i = 24-25 reached here no problem. 				        
-					     * i = 26    reached here no problem. 
-		    	   		 * add to INSTRUCTION IMAGE (MACHINE CODE). */
-			   			printf("operands[0]=|%d|\n",operands[0]);
-		            	printf("operands[1]=|%d|\n",operands[1]);
-		            	printf("operands[2]=|%d|\n",operands[2]);
-		            	printf("label_operand=|%s|\n",label_operand);
 		            	if(i>=0 && i<=7)/* $reg, $reg / $reg, $reg , $reg */
 		                    add_to_code_image(code_image,'R',i,operands[0],operands[1],operands[2],symbol_table,label_operand);
 		                else if(i>=13 && i<=16)/* $reg, $reg, label */
@@ -942,7 +849,6 @@ operands[2]=0;
 		                    add_to_code_image(code_image,'J',i,0,0,0,symbol_table,label_operand);
 		                else if(i==26) /* NO OPERANDS */
 		                    add_to_code_image(code_image,'J',i,0,0,0,symbol_table,label_operand);
-		                print_instruction_list(code_image);
 			            IC+=4;
 					    continue;
 		            case 8:  /* addi */
@@ -1133,15 +1039,8 @@ operands[2]=0;
 				    		continue;
 				        }
 
-					    /* i = 8-12 reached here no problem.
-					     * i = 17-22 reached here no problem.				        
-		    	   		 * add to INSTRUCTION IMAGE (MACHINE CODE). */
-		   	   			printf("operands[0]=|%d|\n",operands[0]);
-		            	printf("operands[1]=|%d|\n",operands[1]);
-		            	printf("operands[2]=|%d|\n",operands[2]);
 		            	if((i>=8 && i<=12) || (i>=17 && i<=22))/* $reg, immed, $reg */
 		                    add_to_code_image(code_image,'I',i,operands[0],operands[1],operands[2],symbol_table,label_operand);
-		                print_instruction_list(code_image);
 			            IC+=4;
 					    continue;
 			    }/*end of switch(i)*/
@@ -1150,6 +1049,8 @@ operands[2]=0;
 	}/* end for loop of lines in files. */
 	ICF = IC;
 	DCF = DC;
+	if(empty_file == 0)
+		error=ERROR;
 	if(!error) /* If the code in the file valid so far, we increase the addresses of the data variables */
 	    increase_address_to_data(symbol_table, data_image);
 
@@ -1180,7 +1081,11 @@ int skip_non_white_spaces(char *str)
 	}
 	return count;
 }
-int is_label(char * tkn ,instruction instructions[] ,char * directives[] ,symbol_list * symbols, int is_parameter_check)
+/*--------------------------------------------------------------------------------------------
+is_label: checks whether a given label (tkn) is valid.
+          returns 1 if so, -1 if not and 2 if there was no label at all.
+--------------------------------------------------------------------------------------------*/
+int is_label(char * tkn ,machine_instruction instructions[] ,char * directives[] ,symbol_list * symbols, int is_parameter_check)
 {
     int i=0;
 	char str[MAX_LABEL_LEN]="";

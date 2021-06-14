@@ -1,11 +1,182 @@
+/*
+Kfir Sibirsky	316317221
+Eyal Haimov
+=====================================================================================================
+This file contains...
+=====================================================================================================
+*/
 #include "utils.h"
 #include "second_pass.h"
 
 ext_list *external_list;
 extern char *directives[];
-extern instruction instructions[];
+extern machine_instruction instructions[];
 
+void print_machine_code(instruction_list *ci, directive_list *di) {
+    instruction_node *in = ci->head;
+    directive_node *dn = di->head;
+    char num_bin[32]="",num_hex[32]="",*pair_hex;
+    int pairs_in_line=0,i=0,expected_address=0, parsing  = 0;
+    /* print length of code image and length of data image. */
+    printf("\n     %d %d\n",ICF-100,DCF);
+    /* print code image. */
+    while (in != NULL)
+    {
+        if(in->R != NULL)
+            int_to_bin_str(*(int*)in->R,32,num_bin);
+        else if(in->I != NULL)
+            int_to_bin_str(*(int*)in->I,32,num_bin);
+        else if(in->J != NULL)
+            int_to_bin_str(*(int*)in->J,32,num_bin);
+        bin_str_to_hex_str(num_bin,num_hex);
+        printf("%04d %s\n",in->address,num_hex);
+        for(i=0;i<32;i++)
+        {
+        	num_bin[i]='\0';
+        	num_hex[i]='\0';
+        }
+        in = in->next;
+    }
+  	/* print data image. */
+	expected_address=dn->address;
+    while (dn != NULL)
+    {
+        if(dn->_8_bit != NULL)
+            int_to_bin_str(*(int*)dn->_8_bit,8,num_bin);
+        else if(dn->_16_bit != NULL)
+            int_to_bin_str(*(int*)dn->_16_bit,16,num_bin);
+        else if(dn->_32_bit != NULL)
+            int_to_bin_str(*(int*)dn->_32_bit,32,num_bin);
+    	bin_str_to_hex_str(num_bin,num_hex);
+    	        	/*print_directive(dn);
+    	        	puts("");*/
+        if(pairs_in_line == 0)
+        {
+			printf("%04d ",expected_address);
+        }
+        /* get the first token */
+        pair_hex = strtok(num_hex, " ");
+        /* walk through other tokens */
+        while(pair_hex != NULL)
+        {
+		
+            if(pairs_in_line<4)
+            {
+            	if(parsing == 1)
+				{
+					printf("%04d ",expected_address);
+				}
+                printf("%s ",pair_hex);
+                pairs_in_line++;
+                expected_address++;
+            }
+            if(pairs_in_line==4)
+            {
+                pairs_in_line=0;
+				parsing = 1;
+                puts("");
+            }
+            pair_hex = strtok(NULL, " ");
+        }
+        for(i=0;i<32;i++)
+        {
+        	num_bin[i]='\0';
+        	num_hex[i]='\0';
+        }
+        parsing  = 0;
+        dn = dn->next;
+    }
+    puts("");    
+}
+void print_instruction(instruction_node *i) {
+    char num_bin[80]="";
+    if(i->R != NULL)
+        int_to_bin_str(*(int*)i->R,32,num_bin);
+    else if(i->I != NULL)
+        int_to_bin_str(*(int*)i->I,32,num_bin);
+    else if(i->J != NULL)
+        int_to_bin_str(*(int*)i->J,32,num_bin);
 
+    printf("%04d|%s|",i->address,num_bin);
+    (i->partial.bit==1? printf("  NO!   |\n"):printf("  YES   |\n"));
+}
+
+void print_instruction_list(instruction_list *ci) {
+    int cur = 0;
+    instruction_node *temp = ci->head;
+    if(ci->count==0)
+    {
+        printf("code image empty.\n");
+        return;
+    }
+    puts("\naddr|     machine code  (binary)     |complete|");
+
+    for(cur=0;cur<ci->count;cur++)
+	{
+        print_instruction(temp);
+        temp = temp->next;
+	}
+}
+
+void print_directive(directive_node *d) {
+    char num_bin[80]="";
+    if(d->_8_bit != NULL)
+        int_to_bin_str(*(int*)d->_8_bit,8,num_bin);
+    else if(d->_16_bit != NULL)
+        int_to_bin_str(*(int*)d->_16_bit,16,num_bin);
+    else if(d->_32_bit != NULL)
+        int_to_bin_str(*(int*)d->_32_bit,32,num_bin);
+    printf("%04d|%-32s|\n",d->address,num_bin);
+}
+
+void print_directive_list(directive_list *di) {
+    directive_node *temp = di->head;
+    int cur=0;
+    if(di->count==0)
+    {
+        printf("data image empty.\n");
+        return;
+    }
+    puts("\naddr|     machine code  (binary)     |");
+    for(cur=0;cur<di->count;cur++)
+    {
+        print_directive(temp);
+        temp = temp->next;
+    }
+}
+void print_symbol(symbol *s) {
+	printf("\t%s\t|\t%d\t|\t",s->name,s->address);
+	switch (s->type) {
+		case EXTERNAL:
+			puts("external");
+			return;
+		case DATA:
+			puts("data");
+			return;
+		case CODE:
+			puts("code");
+			return;
+		case CODE_AND_ENTRY:
+			puts("code, entry");
+			return;
+		case DATA_AND_ENTRY:
+			puts("data, entry");
+			return;
+	}
+}
+
+void print_symbol_list(symbol_list *st) {
+    symbol *temp = st->head;
+    int cur = 0;
+    printf("--------------------------------------------------\n");
+	printf("\tSYMBOL\t|VALUE (decimal)|\tATTRIBUTES\n");
+	printf("--------------------------------------------------\n");
+    for(cur=0;cur<st->count;cur++)
+    {
+        print_symbol(temp);
+        temp = temp->next;
+    }
+}
 void print_ext(ext * e) {
 	printf("%-4s|%04d|\n",e->name,e->address);
 }
@@ -25,6 +196,14 @@ void print_ext_list(ext_list *el) {
         temp = temp->next;
     }
 }
+
+
+/*--------------------------------------------------------------------------------------------
+add_to_ext_list: Create a new ext node (external symbol), which consists of the corresponding given 
+                 operands (name = name, address = addr).
+                 Afterwards, append the new node to the end of the linked list of
+                 external symbols (e = external list)
+--------------------------------------------------------------------------------------------*/
 void add_to_ext_list (ext_list * e, char * name, int addr)
 {
     ext * new_node = (ext*) malloc(sizeof(ext));
@@ -63,7 +242,10 @@ void remove_white_spaces(char *str)
 	}
 	str[j] = '\0';
 }
-
+/*--------------------------------------------------------------------------------------------
+second_pass: performs the second pass of the assembler on a given file (fptr).
+            Returns 1 passed successfully, -1 if not.
+--------------------------------------------------------------------------------------------*/
 int second_pass(FILE * fptr)
 {
     char line[MAX_LINE_LEN],token[MAX_LABEL_LEN]="",lbl_opr[MAX_LABEL_LEN]="", cpy_str[MAX_LINE_LEN]="", *cpy_ptr;
@@ -73,9 +255,6 @@ int second_pass(FILE * fptr)
 	external_list = calloc(1, sizeof(ext_list));
     IC = 100;
     DC = 0;
-    print_symbol_list(symbol_table);
-    print_instruction_list(code_image);
-    print_directive_list(data_image);
     for(line_num = 1; fgets(line, MAX_LINE_LEN, fptr); line_num++) /* Scanning through each line of the file */
     {
 		for(c=0;c<MAX_LABEL_LEN;c++)
@@ -249,7 +428,6 @@ int second_pass(FILE * fptr)
 											}
 											temp->I->immed = sptr->address-IC;
 											temp->partial.bit = 0;
-											print_instruction_list(code_image);
 										}
 										sptr=sptr->next;
 									}	
@@ -269,11 +447,9 @@ int second_pass(FILE * fptr)
 											found = 1;
 											temp->J->address = sptr->address;
 											temp->partial.bit = 0;
-											print_instruction_list(code_image);
 											if(sptr->type == EXTERNAL)
 											{
 												add_to_ext_list (external_list, lbl_opr, IC);
-												print_ext_list(external_list);
 											}
 										}
 										sptr=sptr->next;
@@ -294,13 +470,12 @@ int second_pass(FILE * fptr)
 											if(sptr->type == EXTERNAL)
 											{
 												add_to_ext_list (external_list, lbl_opr, IC);
-												print_ext_list(external_list);
+
 											}
 										}
 										sptr=sptr->next;
 									}
 								}	
-							puts("#####################ALL GOOD DOC!#####################");
 							break;
 						}
 						temp = temp->next;
@@ -316,20 +491,38 @@ int second_pass(FILE * fptr)
 	            case 20: /* sw */
 	            case 21: /* lh */
 	            case 22: /* sh */
-					puts("#####################ALL GOOD DOC!#####################");
 		            IC+=4;
 				    continue;
 		    }/*end of switch(i)*/
 		}/*end else MUST BE AN INSTRUCTION. */
 	}/* end for loop of lines in files. */
 	
-	    print_symbol_list(symbol_table);
-    print_instruction_list(code_image);
-    print_directive_list(data_image);
-    print_machine_code(code_image, data_image);
 
 	return error;
 }
+/*--------------------------------------------------------------------------------------------
+int_to_bin_str: Converts a decimal number (n) to a (len) bits binary number.
+                Stores the result as a string (in str).
+--------------------------------------------------------------------------------------------*/
+void int_to_bin_str(int n, int len, char *str)
+{
+    /* Possible numbers representable by len bits is:
+     * -((2^len)/2), ... , -2, -1, 0, 1, 2, ... , ((2^len/2)-1)
+     * Meaning, the possible range of numbers is: [-((2^len)/2) , ((2^len/2)-1)]
+     */
+    char bin[33]="";
+    int i = len-1;
+    
+	while(i>=0)
+    {
+        (n&(1u<<i--))?strcat(bin, "1"):strcat(bin, "0"); 
+    }
+    strncpy(str,bin,len);
+}
+/*--------------------------------------------------------------------------------------------
+bin_str_to_hex_str: Converts a binary string (bin) to hexadecimal string (hex) in which the
+                    order of the hexa digits is as desribed in page 40 in the course booklet. 
+--------------------------------------------------------------------------------------------*/
 void bin_str_to_hex_str(char *bin, char *hex)
 {
     char temp[4]="";
@@ -364,79 +557,4 @@ void bin_str_to_hex_str(char *bin, char *hex)
         hex_left=0;
     }
 }
-void print_machine_code(instruction_list *ci, directive_list *di) {
-    instruction_node *in = ci->head;
-    directive_node *dn = di->head;
-    char num_bin[32]="",num_hex[32]="",*pair_hex;
-    int pairs_in_line=0,i=0,expected_address=0, parsing  = 0;
-    /* print length of code image and length of data image. */
-    printf("\n     %d %d\n",ICF-100,DCF);
-    /* print code image. */
-    while (in != NULL)
-    {
-        if(in->R != NULL)
-            int_to_bin_str(*(int*)in->R,32,num_bin);
-        else if(in->I != NULL)
-            int_to_bin_str(*(int*)in->I,32,num_bin);
-        else if(in->J != NULL)
-            int_to_bin_str(*(int*)in->J,32,num_bin);
-        bin_str_to_hex_str(num_bin,num_hex);
-        printf("%04d %s\n",in->address,num_hex);
-        for(i=0;i<32;i++)
-        {
-        	num_bin[i]='\0';
-        	num_hex[i]='\0';
-        }
-        in = in->next;
-    }
-  	/* print data image. */
-	expected_address=dn->address;
-    while (dn != NULL)
-    {
-        if(dn->_8_bit != NULL)
-            int_to_bin_str(*(int*)dn->_8_bit,8,num_bin);
-        else if(dn->_16_bit != NULL)
-            int_to_bin_str(*(int*)dn->_16_bit,16,num_bin);
-        else if(dn->_32_bit != NULL)
-            int_to_bin_str(*(int*)dn->_32_bit,32,num_bin);
-    	bin_str_to_hex_str(num_bin,num_hex);
-    	        	/*print_directive(dn);
-    	        	puts("");*/
-        if(pairs_in_line == 0)
-        {
-			printf("%04d ",expected_address);
-        }
-        /* get the first token */
-        pair_hex = strtok(num_hex, " ");
-        /* walk through other tokens */
-        while(pair_hex != NULL)
-        {
-		
-            if(pairs_in_line<4)
-            {
-            	if(parsing == 1)
-				{
-					printf("%04d ",expected_address);
-				}
-                printf("%s ",pair_hex);
-                pairs_in_line++;
-                expected_address++;
-            }
-            if(pairs_in_line==4)
-            {
-                pairs_in_line=0;
-				parsing = 1;
-                puts("");
-            }
-            pair_hex = strtok(NULL, " ");
-        }
-        for(i=0;i<32;i++)
-        {
-        	num_bin[i]='\0';
-        	num_hex[i]='\0';
-        }
-        parsing  = 0;
-        dn = dn->next;
-    }
-    puts("");    
-}
+

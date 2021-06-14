@@ -1,6 +1,8 @@
 /*
 Kfir Sibirsky	316317221
+Eyal Haimov 316316868
 =====================================================================================================
+This file contains...
 =====================================================================================================
 */
 #include "utils.h"
@@ -12,14 +14,6 @@ Kfir Sibirsky	316317221
 --------------------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
 {    
-	open_files(argc, argv); /* Calls to the open file method to start the process */
-
-    /*REMEMBER TO FREE ALL ALLOCATED MEMORY!!!! */
-
-	return 0;
-}
-void open_files(int argc, char *argv[])
-{
     FILE *fptr;
     int file_number;
     char * file_name;
@@ -45,17 +39,21 @@ void open_files(int argc, char *argv[])
         }
         if(!first_pass(fptr) && !second_pass(fptr))
         {
-			puts("ＦＩＲＳＴ ＡＮＤ ＳＥＣＯＮＤ ＰＡＳＳＥＳ");
-			puts("ＣＯＭＰＬＥＴＥＤ ＳＵＣＣＥＳＳＦＵＬＬＹ!"); 
+			puts("ＰＡＳＳＥＳ ＣＯＭＰＬＥＴＥＤ ＳＵＣＣＥＳＳＦＵＬＬＹ!"); 
 		    write_output_files(argv[file_number]);
         }
-        printf("GALINA GALINA");
         /* Closes the file after reading and frees the file_name string for the next file name */
         fclose(fptr); 
         free(file_name);
-        printf("FINISH ROUND %d",file_number);
     }
+
+    /*REMEMBER TO FREE ALL ALLOCATED MEMORY!!!! */
+
+	return 0;
 }
+/*--------------------------------------------------------------------------------------------
+eng_ordinal_nums: Returns the proper english ordinal numeration suffix for a given number (n).
+--------------------------------------------------------------------------------------------*/
 char * eng_ordinal_nums(int n)
 {
 	if(((n/10)%10)==1)
@@ -73,6 +71,10 @@ char * eng_ordinal_nums(int n)
 	}
 	return "";
 }
+/*--------------------------------------------------------------------------------------------
+write_output_files: Open files to write the 3 output files (ob, ext, ent) with the same name
+                    (name) as the current file being analyzed.
+--------------------------------------------------------------------------------------------*/
 void write_output_files(char *name)
 {
     FILE *fptr;
@@ -102,7 +104,12 @@ void write_output_files(char *name)
     free(file_name);  /* The file's name isn't needed anymore */
 
 }
-
+/*--------------------------------------------------------------------------------------------
+write_ext_file: Write to the output file (f) the list places (addresses) in the machine code
+                in which a symbol that is declared as an external is used.
+                (all symbols that appeared as an operand of .external,
+                And is characterized in the symbol table as "external") 
+--------------------------------------------------------------------------------------------*/
 void write_ext_file(FILE * file_to_write_in)
 {
     ext *e = external_list->head;
@@ -113,6 +120,11 @@ void write_ext_file(FILE * file_to_write_in)
 	}
 	fclose(file_to_write_in);
 }
+/*--------------------------------------------------------------------------------------------
+write_ent_file: Write to the output file (f) the list of symbols which declared as an entry
+                point (all symbols that appeared as an operand of .entry,
+                And is characterized in the symbol table as "data, entry" or "code, entry") 
+--------------------------------------------------------------------------------------------*/
 void write_ent_file(FILE * file_to_write_in)
 {
     symbol *sptr = symbol_table->head;
@@ -126,11 +138,9 @@ void write_ent_file(FILE * file_to_write_in)
 	}
 	fclose(file_to_write_in);
 }
-
-/**
- * Writes the ".ob" file
- * @param name - the name of the given file, without ".as" ending
- */
+/*--------------------------------------------------------------------------------------------
+write_ob_file: Write to the output file (f) the machine code.
+--------------------------------------------------------------------------------------------*/
 void write_ob_file(FILE * file_to_write_in)
 {
     instruction_node *in = code_image->head;

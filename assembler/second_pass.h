@@ -1,16 +1,24 @@
-
+/*
+Kfir Sibirsky	316317221
+Eyal Haimov
+=====================================================================================================
+This file contains...
+=====================================================================================================
+*/
 #ifndef SECOND_PASS_H
 #define SECOND_PASS_H
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h> /* Required for "atol" function. */
+#include <stdlib.h>
 #include <limits.h>
 
-
-
-
-void bin_str_to_hex_str(char *bin, char *hex);
+/*--------------------------------------------------------------------------------------------
+add_to_ext_list: Create a new ext node (external symbol), which consists of the corresponding given 
+                 operands (name = name, address = addr).
+                 Afterwards, append the new node to the end of the linked list of
+                 external symbols (e = external list)
+--------------------------------------------------------------------------------------------*/
 void add_to_ext_list (ext_list * e, char * name, int addr);
 
 /*--------------------------------------------------------------------------------------------
