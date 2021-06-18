@@ -1,6 +1,6 @@
 /*
 Kfir Sibirsky	316317221
-Eyal Haimov 316316868
+Eyal Haimov
 =====================================================================================================
 This file contains...
 =====================================================================================================
@@ -13,6 +13,7 @@ This file contains...
 #include <stdlib.h>
 #include <limits.h>
 
+char * file_name;
 
 /*--------------------------------------------------------------------------------------------
 first_pass: performs the first pass of the assembler on a given file (fptr).

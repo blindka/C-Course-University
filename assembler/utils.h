@@ -17,6 +17,9 @@ This file contains...
 #define MAX_LABEL_LEN 31
 #define NUM_OF_INSTRUCTIONS 27
 #define NUM_OF_DIRECTIVES 6
+#define IC_START_ADDR 100
+#define DC_START_ADDR 0
+#define NUM_OF_INSTRUCTIONS 27
 #define ERROR -1
 
 /*--------------------------------------------------------------------------------------------
@@ -187,23 +190,25 @@ typedef struct ext_list {
 extern ext_list *external_list;
 
 extern int IC, DC, ICF, DCF;
+extern char *file_name;
+/*--------------------------------------------------------------------------------------------
+skip_white_spaces: Returns the number of white space characters from a given index (start_at)
+                   to the first non-white space character for a given string (str).
+--------------------------------------------------------------------------------------------*/
+int skip_white_spaces(char *str,int start_at);
 
 /*--------------------------------------------------------------------------------------------
-skip_white_spaces: returns the number of white spaces from the start of a given string (s).
+skip_non_white_spaces: Returns the number of non-white space characters from a given index 
+                       (start_at) to the first white space character for a given string (str).
 --------------------------------------------------------------------------------------------*/
-int skip_white_spaces(char *s);
-
-/*--------------------------------------------------------------------------------------------
-skip_non_white_spaces: returns the number of non white spaces from the start of a given
-                       string (s).
---------------------------------------------------------------------------------------------*/
-int skip_non_white_spaces(char *s);
+int skip_non_white_spaces(char *str,int start_at);
 
 /*--------------------------------------------------------------------------------------------
 is_label: checks whether a given label (tkn) is valid.
-          returns 1 if so, -1 if not and 2 if there was no label at all.
+          returns 1 if so, -1 if not and -2 if there was no label at all.
 --------------------------------------------------------------------------------------------*/
-int is_label(char * tkn ,machine_instruction instructions[] ,char * directives[] ,symbol_list * symbols, int is_parameter_check);
+int is_label(char * tkn ,machine_instruction instructions[] ,char * directives[]
+            ,symbol_list * symbols, int is_parameter_check, int line_number);
 
 /*--------------------------------------------------------------------------------------------
 int_to_bin_str: Converts a decimal number (n) to a (len) bits binary number.

@@ -1,6 +1,6 @@
 /*
 Kfir Sibirsky	316317221
-Eyal Haimov 316316868
+Eyal Haimov
 =====================================================================================================
 This file contains...
 =====================================================================================================
@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {    
     FILE *fptr;
     int file_number;
-    char * file_name;
+
 
     for(file_number = 1; file_number < argc; file_number++) /* Scanning argv from the second argument, the first file name to be checked */
     {
@@ -148,7 +148,7 @@ void write_ob_file(FILE * file_to_write_in)
     char num_bin[32]="",num_hex[32]="",*pair_hex;
     int pairs_in_line=0,i=0,expected_address=0, parsing  = 0;
     /* print length of code image and length of data image. */
-    fprintf(file_to_write_in,"     %d %d\n",ICF-100,DCF);
+    fprintf(file_to_write_in,"     %d %d\n",ICF-IC_START_ADDR,DCF);
     /* print code image. */
     while (in != NULL)
     {

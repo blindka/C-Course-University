@@ -12,13 +12,14 @@ ext_list *external_list;
 extern char *directives[];
 extern machine_instruction instructions[];
 
-void print_machine_code(instruction_list *ci, directive_list *di) {
+void print_machine_code(instruction_list *ci, directive_list *di)
+{
     instruction_node *in = ci->head;
     directive_node *dn = di->head;
     char num_bin[32]="",num_hex[32]="",*pair_hex;
     int pairs_in_line=0,i=0,expected_address=0, parsing  = 0;
     /* print length of code image and length of data image. */
-    printf("\n     %d %d\n",ICF-100,DCF);
+    printf("\n     %d %d\n",ICF-IC_START_ADDR,DCF);
     /* print code image. */
     while (in != NULL)
     {
@@ -48,8 +49,6 @@ void print_machine_code(instruction_list *ci, directive_list *di) {
         else if(dn->_32_bit != NULL)
             int_to_bin_str(*(int*)dn->_32_bit,32,num_bin);
     	bin_str_to_hex_str(num_bin,num_hex);
-    	        	/*print_directive(dn);
-    	        	puts("");*/
         if(pairs_in_line == 0)
         {
 			printf("%04d ",expected_address);
@@ -88,7 +87,8 @@ void print_machine_code(instruction_list *ci, directive_list *di) {
     }
     puts("");    
 }
-void print_instruction(instruction_node *i) {
+void print_instruction(instruction_node *i)
+{
     char num_bin[80]="";
     if(i->R != NULL)
         int_to_bin_str(*(int*)i->R,32,num_bin);
@@ -109,8 +109,9 @@ void print_instruction_list(instruction_list *ci) {
         printf("code image empty.\n");
         return;
     }
-    puts("\naddr|     machine code  (binary)     |complete|");
-
+    printf("-----------------------------------------------\n");
+    printf("addr|     machine code  (binary)     |complete|\n");
+    printf("-----------------------------------------------\n");
     for(cur=0;cur<ci->count;cur++)
 	{
         print_instruction(temp);
@@ -137,7 +138,9 @@ void print_directive_list(directive_list *di) {
         printf("data image empty.\n");
         return;
     }
-    puts("\naddr|     machine code  (binary)     |");
+    printf("--------------------------------------\n");
+    printf("addr|     machine code  (binary)     |\n");
+    printf("--------------------------------------\n");
     for(cur=0;cur<di->count;cur++)
     {
         print_directive(temp);
@@ -248,19 +251,19 @@ second_pass: performs the second pass of the assembler on a given file (fptr).
 --------------------------------------------------------------------------------------------*/
 int second_pass(FILE * fptr)
 {
-    char line[MAX_LINE_LEN],token[MAX_LABEL_LEN]="",lbl_opr[MAX_LABEL_LEN]="", cpy_str[MAX_LINE_LEN]="", *cpy_ptr;
-    int c=0,count = 0, status = 0, error = 0,i,line_num;
+    char line[MAX_LINE_LEN],token[MAX_LABEL_LEN]="",label_operand[MAX_LABEL_LEN]="", cpy_str[MAX_LINE_LEN]="", *cpy_ptr;
+    int c=0,count = 0, status = 0, error = 0,i,line_number;
 	symbol * sptr = symbol_table->head;
 	int found = 0;
 	external_list = calloc(1, sizeof(ext_list));
-    IC = 100;
-    DC = 0;
-    for(line_num = 1; fgets(line, MAX_LINE_LEN, fptr); line_num++) /* Scanning through each line of the file */
+    IC = IC_START_ADDR;
+    DC = DC_START_ADDR;
+    for(line_number = 1; fgets(line, MAX_LINE_LEN, fptr); line_number++) /* Scanning through each line of the file */
     {
 		for(c=0;c<MAX_LABEL_LEN;c++)
 		{
 			token[c]='\0';
-			lbl_opr[c]='\0';
+			label_operand[c]='\0';
 			cpy_str[c]='\0';
 		}
 		for(c=0;c<MAX_LINE_LEN;c++)
@@ -271,53 +274,41 @@ int second_pass(FILE * fptr)
     	count = 0;
     	status = 0; 
     	sptr = symbol_table->head;
-    	puts(line);
         strcpy(cpy_str,line);
 		cpy_ptr = cpy_str;
+    	printf("%s",cpy_ptr);
 		/* Skip unnecessary white spaces at the start of the input. */
-		cpy_ptr += skip_white_spaces(cpy_ptr);
+		cpy_ptr += skip_white_spaces(cpy_ptr,0);
 		/* Check if the input is a blank line. */
 		if (cpy_ptr[0] == '\n' || cpy_ptr[0] == '\0' || cpy_ptr[0] == ';') 
 		{
 			continue;
 		}
-		while(count<strlen(cpy_ptr) && !isspace(cpy_ptr[count])) {
-	    /* getting first "token". (sus label) */
-	    count++;
-		}
+		/* Get first token. */
+		count = skip_non_white_spaces(cpy_ptr,0);
 		strncpy(token,cpy_ptr,count);
-		status = is_label(token ,instructions, directives, symbol_table,1);
+		status = is_label(token ,instructions, directives, symbol_table,1,line_number);
 		if(status == 1)/* VALID LABEL, SKIP to second token. */
 		{
 			/* Skip the label. */
 			cpy_ptr += count;
 			/* Skip unnecessary white spaces between label and instruction/directive name. */
-			cpy_ptr += skip_white_spaces(cpy_ptr);
-			count = 0;
-			while(count<strlen(cpy_ptr) && !isspace(cpy_ptr[count])) {
-			/* getting instruction/directive name. */
-				count++;
-			}
+			cpy_ptr += skip_white_spaces(cpy_ptr,0);
+			/* Get second token. */
+			count = skip_non_white_spaces(cpy_ptr,0);
 			for(c=0;c<MAX_LABEL_LEN;c++)
 			{
 				token[c]='\0';
 			}
 			strncpy(token,cpy_ptr,count);
 		}
-		printf("TOKEN=|%s|\n",token);
-		printf("cpy_ptr=|%s|\n",cpy_ptr);
-		/* If there WAS label, we skipped it and now TOKEN = instruction/directive name.
-		 * If there WAS NOT label, 					 TOKEN = instruction/directive name. */
 		/* Skip the instruction / directive name. */
 		cpy_ptr += count;
 		/* Skip unnecessary white spaces between instruction/directive name and first operand. */
-		cpy_ptr += skip_white_spaces(cpy_ptr);
-		count = 0;
-		while(count<strlen(cpy_ptr) && !isspace(cpy_ptr[count])) {
-		/* getting label operand. */
-			count++;
-		}
-		strncpy(lbl_opr,cpy_ptr,count);
+		cpy_ptr += skip_white_spaces(cpy_ptr,0);
+		/* Get label operand. */
+		count = skip_non_white_spaces(cpy_ptr,0);
+		strncpy(label_operand,cpy_ptr,count);
  
 		if(!strcmp(token, ".db") || !strcmp(token, ".dh") || !strcmp(token, ".dw") || !strcmp(token, ".asciz") || !strcmp(token, ".extern"))
 		{
@@ -327,7 +318,7 @@ int second_pass(FILE * fptr)
 		{
 			while(sptr)
 			{
-				if(!strcmp(lbl_opr, sptr->name))
+				if(!strcmp(label_operand, sptr->name))
 				{
 					found = 1;
 					if(sptr->type == DATA)
@@ -339,7 +330,8 @@ int second_pass(FILE * fptr)
 			}	
 			if(!found)
 			{
-				printf("ERROR! the label %s was not found in symbol table.\n",lbl_opr);
+		        printf("ERROR in file %s at line %d:\n",file_name,line_number);
+				printf("The label %s was not found in symbol table.\n",label_operand);
 				error=ERROR;
 			}
  			continue;
@@ -399,9 +391,9 @@ int second_pass(FILE * fptr)
 				     * i = 26    reached here no problem.*/ 
 
 					while (temp != NULL)/* code image list not ended */
-					{printf("temp->address=|%d|\n",temp->address);
+					{
 						if(temp->address==IC)/* found corresponding instruction node in code image to current line. */
-						{printf("found addres=|%d|\n",temp->address);
+						{
 							if(temp->partial.bit == 1)/* machine code in the instruction node is partial. */
 							{
 								if(i >= 13 && i <= 16)/* bne / beq / blt / bgt */
@@ -413,16 +405,16 @@ int second_pass(FILE * fptr)
 									/* Skip ',' at start. */
 									cpy_ptr++;
 									/* getting label operand. */
-									strcpy(lbl_opr,cpy_ptr);
-									printf("lbl_opr=|%s|\n",lbl_opr);
+									strcpy(label_operand,cpy_ptr);
 									while(sptr)
 									{
-										if(!strcmp(lbl_opr, sptr->name))
+										if(!strcmp(label_operand, sptr->name))
 										{
 											found = 1;
 											if(sptr->type == EXTERNAL)
 											{
-												printf("ERROR! the label %s is external and is used in %s instruction.\n",lbl_opr,token);
+										        printf("ERROR in file %s at line %d:\n",file_name,line_number);
+												printf("The label %s is external and is used in %s instruction.\n",label_operand,token);
 												error=ERROR;
 												continue;
 											}
@@ -433,30 +425,31 @@ int second_pass(FILE * fptr)
 									}	
 									if(!found)
 									{
-										printf("ERROR! the label %s was not found in symbol table.\n",lbl_opr);
+								        printf("ERROR in file %s at line %d:\n",file_name,line_number);
+										printf("The label %s was not found in symbol table.\n",label_operand);
 										error=ERROR;
 									}
 								}
 								else if(i >= 23 && i <= 25)/* jmp / la / call */
 								{
-								printf("lbl_opr=|%s|\n",lbl_opr);
 									while(sptr)
-									{printf("sptr->name=|%s|\n",sptr->name);
-										if(!strcmp(lbl_opr, sptr->name))
+									{
+										if(!strcmp(label_operand, sptr->name))
 										{
 											found = 1;
 											temp->J->address = sptr->address;
 											temp->partial.bit = 0;
 											if(sptr->type == EXTERNAL)
 											{
-												add_to_ext_list (external_list, lbl_opr, IC);
+												add_to_ext_list (external_list, label_operand, IC);
 											}
 										}
 										sptr=sptr->next;
 									}	
 									if(!found)
 									{
-										printf("ERROR! the label %s was not found in symbol table.\n",lbl_opr);
+								        printf("ERROR in file %s at line %d:\n",file_name,line_number);
+										printf("The label %s was not found in symbol table.\n",label_operand);
 										error=ERROR;
 									}
 								}
@@ -465,11 +458,11 @@ int second_pass(FILE * fptr)
 								{
 									while(sptr)
 									{
-										if(!strcmp(lbl_opr, sptr->name))
+										if(!strcmp(label_operand, sptr->name))
 										{
 											if(sptr->type == EXTERNAL)
 											{
-												add_to_ext_list (external_list, lbl_opr, IC);
+												add_to_ext_list (external_list, label_operand, IC);
 
 											}
 										}
@@ -497,7 +490,10 @@ int second_pass(FILE * fptr)
 		}/*end else MUST BE AN INSTRUCTION. */
 	}/* end for loop of lines in files. */
 	
-
+	print_symbol_list(symbol_table);
+	print_instruction_list(code_image);
+	print_directive_list(data_image);
+	print_ext_list(external_list);
 	return error;
 }
 /*--------------------------------------------------------------------------------------------
@@ -506,13 +502,8 @@ int_to_bin_str: Converts a decimal number (n) to a (len) bits binary number.
 --------------------------------------------------------------------------------------------*/
 void int_to_bin_str(int n, int len, char *str)
 {
-    /* Possible numbers representable by len bits is:
-     * -((2^len)/2), ... , -2, -1, 0, 1, 2, ... , ((2^len/2)-1)
-     * Meaning, the possible range of numbers is: [-((2^len)/2) , ((2^len/2)-1)]
-     */
     char bin[33]="";
     int i = len-1;
-    
 	while(i>=0)
     {
         (n&(1u<<i--))?strcat(bin, "1"):strcat(bin, "0"); 
@@ -521,7 +512,7 @@ void int_to_bin_str(int n, int len, char *str)
 }
 /*--------------------------------------------------------------------------------------------
 bin_str_to_hex_str: Converts a binary string (bin) to hexadecimal string (hex) in which the
-                    order of the hexa digits is as desribed in page 40 in the course booklet. 
+                    order of the hexa digits is as described in page 40 in the course booklet. 
 --------------------------------------------------------------------------------------------*/
 void bin_str_to_hex_str(char *bin, char *hex)
 {
@@ -536,21 +527,23 @@ void bin_str_to_hex_str(char *bin, char *hex)
     */
     while(i>=0)
     {
+    	/* Start from the right most bit. */
         k=i;
-        /* calculating the hex value of the right most group */
+        /* Calculating the hex value of the right most group */
         for(mult=1, j=3; j>=0; j--, k--)
         {
             hex_right += (bin[k]=='0'? 0 : mult);
             mult *= 2;
         }
-        /* calculaing the hex value of the group that is left to the right most group */
+        /* Calculating the hex value of the group that is left to the right most group */
         for(mult=1, j=3; j>=0; j--, k--)
         {
             hex_left += (bin[k]=='0'? 0 : mult);
             mult *= 2;
         }
+    	/* Skipping left over the bits that was checked. */
         i=k;
-        /* Concatinate left group then right group to hex string. */
+        /* Concatenate left group then right group to hex string. */
         sprintf(temp,"%X%X ",hex_left,hex_right);
         strcat(hex,temp);
         hex_right=0;

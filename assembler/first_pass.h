@@ -51,4 +51,46 @@ increase_address_to_data: Adds the value of ICF to the address of each symbol in
                           (data image)
 --------------------------------------------------------------------------------------------*/
 void increase_address_to_data(symbol_list *st, directive_list *di);
+
+/*--------------------------------------------------------------------------------------------
+get_comma: Check whether there is a comma at the start of a given string (cpy_ptr),
+           and whether there are multiple consecutive commas or missing commas.
+           (error) gets the error status. 
+           Skips to the first non-white space character after the comma, and returns that
+           index.  
+--------------------------------------------------------------------------------------------*/
+int get_comma(char * cpy_ptr , int *error, int line_number );
+
+/*--------------------------------------------------------------------------------------------
+get_immed: Check whether there is an immediate number at the start of a given string (cpy_ptr).
+           If so, (num) gets the immediate number, else (error) gets the error status. 
+           returns the length of the string containing the '+' / '-' sign and the number 
+           (e.g., "-533" returns 3).
+--------------------------------------------------------------------------------------------*/
+int get_immed(char * cpy_ptr, long *num , int *error, int line_number );
+
+/*--------------------------------------------------------------------------------------------
+get_reg: Check whether there is a register at the start of a given string (cpy_ptr).
+         If so, (reg_num) gets the register number, else (error) gets the error status.
+         returns the length of the string containing the '$' sign and the register number 
+         (e.g., "$25" returns 3).
+--------------------------------------------------------------------------------------------*/
+int get_reg(char * cpy_ptr, long *reg_num , int *error, int line_number );
+
+/*--------------------------------------------------------------------------------------------
+get_label: Check whether there is a label at the start of a given string (cpy_ptr).
+           If so, (label_operand) gets the label, else (error) gets the error status. 
+           returns the length of the label. (e.g., "example_label" returns 13).
+--------------------------------------------------------------------------------------------*/
+int get_label(char * cpy_ptr, char *label_operand, int *error, int line_number );
+
+/*--------------------------------------------------------------------------------------------
+get_label_or_reg: Check whether there is a label or a register at the start of a given string
+                  (cpy_ptr). Accordingly (label_operand) gets the label or (reg_num) gets the 
+                  register number. Else, (error) gets the error status. 
+                  Returns the length of the string containing the label 
+                  (e.g., "example_label" returns 13). or string containing the '$' sign and 
+                  the register number (e.g., "$25" returns 3).
+--------------------------------------------------------------------------------------------*/
+int get_label_or_reg(char * cpy_ptr, long *reg_num, char *label_operand, int *error, int line_number );
 #endif
