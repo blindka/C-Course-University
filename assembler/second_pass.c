@@ -1,8 +1,23 @@
 /*
 Kfir Sibirsky	316317221
-Eyal Haimov
+Eyal Haimov     316316118
 =====================================================================================================
-This file contains...
+This file contains the functions we are using in the second pass in which we are checking for:
+• Symbols (externs)
+• Instruction / directives.
+• Amount of memory to allocate.
+• Error checking.
+-----------------------------------------------------------------------------------------------------
+Included files:
+---------------
+• "utils.h" - Required data structures, definitions and function prototypes. 
+• "second_pass.h" - Required libraries and function prototypes. 
+-----------------------------------------------------------------------------------------------------
+Global Parameters:
+------------------
+• (ext_list) *external_list -  points to the external symbol table.
+• (extern char) *directives[] -  points to the directives names.
+• (extern machine_instruction) *instructions[] -  points to the machine instructions names.
 =====================================================================================================
 */
 #include "utils.h"
@@ -11,195 +26,6 @@ This file contains...
 ext_list *external_list;
 extern char *directives[];
 extern machine_instruction instructions[];
-
-void print_machine_code(instruction_list *ci, directive_list *di)
-{
-    instruction_node *in = ci->head;
-    directive_node *dn = di->head;
-    char num_bin[32]="",num_hex[32]="",*pair_hex;
-    int pairs_in_line=0,i=0,expected_address=0, parsing  = 0;
-    /* print length of code image and length of data image. */
-    printf("\n     %d %d\n",ICF-IC_START_ADDR,DCF);
-    /* print code image. */
-    while (in != NULL)
-    {
-        if(in->R != NULL)
-            int_to_bin_str(*(int*)in->R,32,num_bin);
-        else if(in->I != NULL)
-            int_to_bin_str(*(int*)in->I,32,num_bin);
-        else if(in->J != NULL)
-            int_to_bin_str(*(int*)in->J,32,num_bin);
-        bin_str_to_hex_str(num_bin,num_hex);
-        printf("%04d %s\n",in->address,num_hex);
-        for(i=0;i<32;i++)
-        {
-        	num_bin[i]='\0';
-        	num_hex[i]='\0';
-        }
-        in = in->next;
-    }
-  	/* print data image. */
-	expected_address=dn->address;
-    while (dn != NULL)
-    {
-        if(dn->_8_bit != NULL)
-            int_to_bin_str(*(int*)dn->_8_bit,8,num_bin);
-        else if(dn->_16_bit != NULL)
-            int_to_bin_str(*(int*)dn->_16_bit,16,num_bin);
-        else if(dn->_32_bit != NULL)
-            int_to_bin_str(*(int*)dn->_32_bit,32,num_bin);
-    	bin_str_to_hex_str(num_bin,num_hex);
-        if(pairs_in_line == 0)
-        {
-			printf("%04d ",expected_address);
-        }
-        /* get the first token */
-        pair_hex = strtok(num_hex, " ");
-        /* walk through other tokens */
-        while(pair_hex != NULL)
-        {
-		
-            if(pairs_in_line<4)
-            {
-            	if(parsing == 1)
-				{
-					printf("%04d ",expected_address);
-				}
-                printf("%s ",pair_hex);
-                pairs_in_line++;
-                expected_address++;
-            }
-            if(pairs_in_line==4)
-            {
-                pairs_in_line=0;
-				parsing = 1;
-                puts("");
-            }
-            pair_hex = strtok(NULL, " ");
-        }
-        for(i=0;i<32;i++)
-        {
-        	num_bin[i]='\0';
-        	num_hex[i]='\0';
-        }
-        parsing  = 0;
-        dn = dn->next;
-    }
-    puts("");    
-}
-void print_instruction(instruction_node *i)
-{
-    char num_bin[80]="";
-    if(i->R != NULL)
-        int_to_bin_str(*(int*)i->R,32,num_bin);
-    else if(i->I != NULL)
-        int_to_bin_str(*(int*)i->I,32,num_bin);
-    else if(i->J != NULL)
-        int_to_bin_str(*(int*)i->J,32,num_bin);
-
-    printf("%04d|%s|",i->address,num_bin);
-    (i->partial.bit==1? printf("  NO!   |\n"):printf("  YES   |\n"));
-}
-
-void print_instruction_list(instruction_list *ci) {
-    int cur = 0;
-    instruction_node *temp = ci->head;
-    if(ci->count==0)
-    {
-        printf("code image empty.\n");
-        return;
-    }
-    printf("-----------------------------------------------\n");
-    printf("addr|     machine code  (binary)     |complete|\n");
-    printf("-----------------------------------------------\n");
-    for(cur=0;cur<ci->count;cur++)
-	{
-        print_instruction(temp);
-        temp = temp->next;
-	}
-}
-
-void print_directive(directive_node *d) {
-    char num_bin[80]="";
-    if(d->_8_bit != NULL)
-        int_to_bin_str(*(int*)d->_8_bit,8,num_bin);
-    else if(d->_16_bit != NULL)
-        int_to_bin_str(*(int*)d->_16_bit,16,num_bin);
-    else if(d->_32_bit != NULL)
-        int_to_bin_str(*(int*)d->_32_bit,32,num_bin);
-    printf("%04d|%-32s|\n",d->address,num_bin);
-}
-
-void print_directive_list(directive_list *di) {
-    directive_node *temp = di->head;
-    int cur=0;
-    if(di->count==0)
-    {
-        printf("data image empty.\n");
-        return;
-    }
-    printf("--------------------------------------\n");
-    printf("addr|     machine code  (binary)     |\n");
-    printf("--------------------------------------\n");
-    for(cur=0;cur<di->count;cur++)
-    {
-        print_directive(temp);
-        temp = temp->next;
-    }
-}
-void print_symbol(symbol *s) {
-	printf("\t%s\t|\t%d\t|\t",s->name,s->address);
-	switch (s->type) {
-		case EXTERNAL:
-			puts("external");
-			return;
-		case DATA:
-			puts("data");
-			return;
-		case CODE:
-			puts("code");
-			return;
-		case CODE_AND_ENTRY:
-			puts("code, entry");
-			return;
-		case DATA_AND_ENTRY:
-			puts("data, entry");
-			return;
-	}
-}
-
-void print_symbol_list(symbol_list *st) {
-    symbol *temp = st->head;
-    int cur = 0;
-    printf("--------------------------------------------------\n");
-	printf("\tSYMBOL\t|VALUE (decimal)|\tATTRIBUTES\n");
-	printf("--------------------------------------------------\n");
-    for(cur=0;cur<st->count;cur++)
-    {
-        print_symbol(temp);
-        temp = temp->next;
-    }
-}
-void print_ext(ext * e) {
-	printf("%-4s|%04d|\n",e->name,e->address);
-}
-
-void print_ext_list(ext_list *el) {
-    ext *temp = el->head;
-    if(el->count==0)
-    {
-        printf("external list empty.\n");
-        return;
-    }
-    printf("----------\n");
-	printf("NAME|ADDR|\n");
-	printf("----------\n");
-    while (temp != NULL) {
-        print_ext(temp);
-        temp = temp->next;
-    }
-}
-
 
 /*--------------------------------------------------------------------------------------------
 add_to_ext_list: Create a new ext node (external symbol), which consists of the corresponding given 
@@ -211,16 +37,16 @@ void add_to_ext_list (ext_list * e, char * name, int addr)
 {
     ext * new_node = (ext*) malloc(sizeof(ext));
     ext *last = e->head;
-
+    int cur = 0;
     strcpy(new_node->name,name);
     new_node->address  = addr;
     new_node->next = NULL;
  
-     if (e->count == 0)
+	if (e->count == 0)
        e->head = new_node;
-    else {
-        while (last->next != NULL)
-            last = last->next;
+    else 
+    {
+        for(cur=0;cur<(e->count)-1;cur++,last = last->next);
         last->next = new_node;
     }
     e->count++;
@@ -276,7 +102,6 @@ int second_pass(FILE * fptr)
     	sptr = symbol_table->head;
         strcpy(cpy_str,line);
 		cpy_ptr = cpy_str;
-    	printf("%s",cpy_ptr);
 		/* Skip unnecessary white spaces at the start of the input. */
 		cpy_ptr += skip_white_spaces(cpy_ptr,0);
 		/* Check if the input is a blank line. */
@@ -339,20 +164,6 @@ int second_pass(FILE * fptr)
 		else /* Instruction is expected. */
 		{	
 	        instruction_node *temp = code_image->head;
-			/* we know which instruction is it.(it is instructions[i].name) 
-			 *	-	R?
-			 *		--	add?/sub?/and?/or?/nor? 	 (3 operands: $reg,$reg,$reg)   ✔
-			 *		--	move?/mvhi?/mvlo?			 (2 operands: $reg,$reg)        ✔
-			 *	-	I?
-			 *		--	addi?/subi?/andi?/ori?/nori? (3 operands: $reg,immed,$reg)  ✔
-			 *		--	bne?/beq?/blt?/bgt?			 (3 operands: $reg,$reg,label)  ✔
-			 *		--	lb?/sb?/lw?/sw?/lh?/sh?		 (3 operands: $reg,immed,$reg)  ✔
-			 *	-	J?
-			 *		--	jmp?						 (1 operand: label / $reg)      ✔
-			 *		--	la?							 (1 operand: label)             ✔
-			 *		--	call?						 (1 operand: label)             ✔
-			 *		--	stop?						 (0 operands = NO OPERANDS!)    ✔   */
-
 			for(i=0;i<NUM_OF_INSTRUCTIONS;i++)
 			{
 				if(!strcmp(token, instructions[i].name))
@@ -489,11 +300,6 @@ int second_pass(FILE * fptr)
 		    }/*end of switch(i)*/
 		}/*end else MUST BE AN INSTRUCTION. */
 	}/* end for loop of lines in files. */
-	
-	print_symbol_list(symbol_table);
-	print_instruction_list(code_image);
-	print_directive_list(data_image);
-	print_ext_list(external_list);
 	return error;
 }
 /*--------------------------------------------------------------------------------------------
@@ -550,4 +356,3 @@ void bin_str_to_hex_str(char *bin, char *hex)
         hex_left=0;
     }
 }
-

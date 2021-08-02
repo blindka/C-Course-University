@@ -1,8 +1,23 @@
 /*
 Kfir Sibirsky	316317221
-Eyal Haimov
+Eyal Haimov     316316118
 =====================================================================================================
-This file contains...
+This file contains the inclusion of the required libraries, definitions, and function prototypes
+for the first pass.
+-----------------------------------------------------------------------------------------------------
+Included libraries:
+-------------------
+• <stdio.h> - for input and output commands, such as: scanf, printf.
+• <stdlib.h> - for several functions, such as: atof, atoi, free, atol etc.
+• <string.h> - for a string commands and NULL.
+• <ctype.h> - for a char commands, such as: isdigit, isspace etc.
+• <limits.h> - for defining the number of bits in the parameters.
+-----------------------------------------------------------------------------------------------------
+Definitions:
+-------------------
+• #ifndef FISRT_PASS_H - temporary condition checks if the macro FISRT_PASS_H exist.
+• #define FISRT_PASS_H - defining the macro FISRT_PASS_H.
+• #endif - each ifndef must be closed by using #endif.   
 =====================================================================================================
 */
 #ifndef FISRT_PASS_H
@@ -12,8 +27,6 @@ This file contains...
 #include <ctype.h>
 #include <stdlib.h>
 #include <limits.h>
-
-
 /*--------------------------------------------------------------------------------------------
 add_to_code_image: Create a new instruction node of given type (i_type = R / I / J) according
                    to a given index (i_idx) to the instruction table.

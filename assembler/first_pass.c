@@ -1,10 +1,32 @@
 /*
 Kfir Sibirsky	316317221
-Eyal Haimov
+Eyal Haimov     316316118
 =====================================================================================================
-This file contains...
+This file contains the functions we are using in the first pass in which we are checking for:
+• Labels.
+• Symbols.
+• Instruction / directives.
+• Amount of memory to allocate.
+• Error checking.
+-----------------------------------------------------------------------------------------------------
+Included files:
+---------------
+• "utils.h" - Required data structures, definitions and function prototypes. 
+• "first_pass.h" - Required libraries and function prototypes. 
+-----------------------------------------------------------------------------------------------------
+Global parameters:
+------------------
+• (int) IC - Instruction counter.
+• (int) DC - Data counter.
+• (int) ICF - Final value of instruction counter.
+• (int) DCF - Final value of data counter.          
+• (symbol_list) *symbol_table -  points to the symbol table.
+• (instruction_list) *code_image - points to the code image: I, J, R.
+• (directive_list) *data_image - points to the data image: .db / .asciz - 8 bytes, .dh - 16 bytes,
+                                 .dw - 32 bytes.              
 =====================================================================================================
 */
+
 #include "utils.h"
 #include "first_pass.h"
 
@@ -12,7 +34,6 @@ int IC, DC, ICF, DCF;
 symbol_list *symbol_table;
 instruction_list *code_image;
 directive_list *data_image;
-
 
 /*--------------------------------------------------------------------------------------------
 instructions: Machine instruction table from page 19 in the course booklet.
@@ -311,7 +332,6 @@ int first_pass(FILE *fptr)
     	status = 0; 
         strcpy(cpy_str,line);
 		cpy_ptr = cpy_str;
-    	printf("%s",cpy_ptr);
 		/* Skip unnecessary white spaces at the start of the input. */
 		cpy_ptr += skip_white_spaces(cpy_ptr,0);
 		/* Check if the input is a blank line. */
@@ -574,6 +594,8 @@ int first_pass(FILE *fptr)
 		            case 21: /* lh */
 		            case 22: /* sh */
 		                /* (3 operands: $reg,immed,$reg) */
+						
+						
 						cpy_ptr += get_reg(cpy_ptr,&operands[0], &line_err,line_number);
 						if(line_err==ERROR)
 						{
@@ -727,6 +749,7 @@ int first_pass(FILE *fptr)
 			}/*end of else (just like found == 1, where found is good insturction or not.)*/
 		}/*end else MUST BE AN INSTRUCTION. */
 	}/* end for loop of lines in files. */
+	/* Saving the last value of the counters. */
 	ICF = IC;
 	DCF = DC;
 	if(empty_file)
@@ -734,11 +757,7 @@ int first_pass(FILE *fptr)
 	if(!error) /* If the code in the file valid so far, we increase the addresses of the data variables */
 	    increase_address_to_data(symbol_table, data_image);
 
-	rewind(fptr); /* Rewinds the file for the second pass and returns a flag regarding a spotted error in the file */
-	print_symbol_list(symbol_table);
-	print_instruction_list(code_image);
-	print_directive_list(data_image);
-	puts("\n\n##########################FIRST PASS END########################\n");
+	rewind(fptr); /* Rewinds the file for the second pass and returns a flag regarding a spotted error in the file. */
 	return error;
 }
 /*--------------------------------------------------------------------------------------------
@@ -989,7 +1008,7 @@ int get_comma(char * cpy_ptr , int *error, int line_number )
 	}
 	else
 	{
-        if(isdigit(cpy_ptr[cur_idx]) || cpy_ptr[cur_idx] == '$')
+        if(isdigit(cpy_ptr[cur_idx]) || cpy_ptr[cur_idx] == '$')/* ALSO + / -*/
         {
             printf("ERROR in file %s at line %d:\n",file_name,line_number);
             printf("Missing comma.\n");

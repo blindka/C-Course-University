@@ -1,10 +1,34 @@
 /*
 Kfir Sibirsky	316317221
-Eyal Haimov
+Eyal Haimov     316316118
 =====================================================================================================
-This file contains...
+This file contains the inclusion of the required libraries, definitions, and function prototypes
+and data structures used by the main program (assembler) and both passes.
+-----------------------------------------------------------------------------------------------------
+Included libraries:
+-------------------
+• <stdio.h> - for input and output commands, such as: scanf, printf.
+• <stdlib.h> - for several functions, such as: atof, atoi, free, atol etc.
+• <string.h> - for a string commands and NULL.
+• <ctype.h> - for a char commands, such as: isdigit, isspace etc.
+• <limits.h> - for defining the number of bits in the parameters.
+-----------------------------------------------------------------------------------------------------
+Definitions:
+-------------------
+• #ifndef UTILS_H - temporary condition checks if the macro UTILS_H exist.
+• #define UTILS_H - defining the macro UTILS_H.
+• #endif - each ifndef must be closed by using #endif.   
+• #endif - each ifndef must be closed by using #endif.                                          
+• #define MAX_LINE_LEN - the max size of each line.                                              
+• #define MAX_LABEL_LEN - the max size of each label.                                           
+• #define NUM_OF_INSTRUCTIONS - the number of instructions.                                    
+• #define NUM_OF_DIRECTIVES - the number of directives.                                        
+• #define IC_START_ADDR - The starting address of instruction counter.                        
+• #define DC_START_ADDR - The starting address of data counter.                      
+• #define ERROR - flag to detect if there is an error.            
 =====================================================================================================
 */
+
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -226,18 +250,5 @@ void bin_str_to_hex_str(char *bin, char *hex);
 eng_ordinal_nums: Returns the proper english ordinal numeration suffix for a given number (n).
 --------------------------------------------------------------------------------------------*/
 char * eng_ordinal_nums(int n);
-
-
-/* !!!!!!!!!!!!!!!!! DONT FORGET TO DELETE BELOW FUNCTIONS !!!!!!!!!!!!!!!!! */
-void print_machine_code(instruction_list *ci, directive_list *di);
-void print_instruction(instruction_node *i);
-void print_instruction_list(instruction_list *ci);
-void print_directive(directive_node *d);
-void print_directive_list(directive_list *di);
-void print_symbol(symbol *s);
-void print_symbol_list(symbol_list *st);
-void print_ext(ext * e);
-void print_ext_list(ext_list *el);
-
 
 #endif
