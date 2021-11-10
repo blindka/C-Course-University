@@ -10,22 +10,22 @@ int main()
     /* checks if the value of hours, minutes, seconds is valid, otherwise - exit and stop the program*/
     if(H < 24 || H > 0 || M < 60 || M > 0 || S < 60 || S > 0)
     {
-        if((H >= 24 || H < 0)&&(M >= 60 || M < 0)&&(S >= 60 || S < 0))
+        if((H >= 24 || H < 0) && (M >= 60 || M < 0) && (S >= 60 || S < 0))
         {
           printf("You Enter Invalid Inputs: Please Enter Hours between 0-23, Minutes and Seconds between 0-59.");
           return 0;
         }
-        if((M >= 60 || M < 0)&&(S >= 60 || S < 0))
+        if((M >= 60 || M < 0) && (S >= 60 || S < 0))
         {
            printf("You Enter Invalid Inputs: Minutes and Seconds Input, Please Enter between 0-59.\n");
            return 0;
         }
-        if((H >= 24 || H < 0)&&(M >= 60 || M < 0))
+        if((H >= 24 || H < 0) && (M >= 60 || M < 0))
         {
           printf("You Enter Invalid Inputs: Please Enter Hours between 0-24, Minutes  between 0-59.\n");
           return 0;
         }
-        if((H >= 24 || H < 0)&&(S >= 60 || S < 0))
+        if((H >= 24 || H < 0) && (S >= 60 || S < 0))
         {
           printf("You Enter Invalid Inputs: Please Enter Hours between 0-23, Seconds  between 0-59.\n");
           return 0;
