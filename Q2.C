@@ -3,7 +3,7 @@
 
 int main() 
 {
-    /* H - hours, M - minutes, S - Seconds, Flight - Flight time, Landing - when the rocket will land, leftover - if it is more than 24 hours - days*/
+    /* H - hours, M - minutes, S - Seconds, Flight - Flight time, leftover - if it is more than 24 hours - days*/
     int H, M, S, Flight, leftover;
     printf("Enter START TIME (H,M,S): \n");
     scanf("%d %d %d",&H, &M, &S);
