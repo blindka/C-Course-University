@@ -1,28 +1,49 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-#include <stdlib.h>
-main() 
+
+int main() 
 {
     /* H - hours, M - minutes, S - Seconds, Flight - Flight time, Landing - when the rocket will land, leftover - if it is more than 24 hours - days*/
     int H, M, S, Flight, Landing, leftover;
     printf("Enter START TIME (H,M,S): \n");
     scanf("%d %d %d",&H, &M, &S);
     /* checks if the value of hours, minutes, seconds is valid, otherwise - exit and stop the program*/
-    if(H < 24 || H > 0 || M < 60 || M > 0 || S < 60 || S > 0) 
+    if(H < 24 || H > 0 || M < 60 || M > 0 || S < 60 || S > 0)
     {
-        if(H > 24 || H < 0)
+        if((H >= 24 || H < 0)&&(M >= 60 || M < 0)&&(S >= 60 || S < 0))
         {
-          printf("You Enter Invalid Hours Input, Please Enter Between 0-23\n");
-          exit(1);
+          printf("You Enter Invalid Inputs: Please Enter Hours between 0-23, Minutes and Seconds between 0-59.");
+          return 0;
         }
-        if(M > 60 || M < 0)
+        if((M >= 60 || M < 0)&&(S >= 60 || S < 0))
         {
-           printf("You Enter Invalid Minutes Input, Please Enter Between 0-59\n");
-           exit(1);
+           printf("You Enter Invalid Inputs: Minutes and Seconds Input, Please Enter between 0-59.\n");
+           return 0;
         }
-        if(S > 60 || S < 0)
+        if((H >= 24 || H < 0)&&(M >= 60 || M < 0))
         {
-          printf("You Enter Invalid Seconds Input, Please Enter Between 0-59\n");
-          exit(1);
+          printf("You Enter Invalid Inputs: Please Enter Hours between 0-24, Minutes  between 0-59.\n");
+          return 0;
+        }
+        if((H >= 24 || H < 0)&&(S >= 60 || S < 0))
+        {
+          printf("You Enter Invalid Inputs: Please Enter Hours between 0-23, Seconds  between 0-59.\n");
+          return 0;
+        }
+        if(H >= 24 || H < 0)
+        {
+          printf("You Enter Invalid Hours Input: Please Enter Between 0-23.\n");
+          return 0;
+        }
+        if(M >= 60 || M < 0)
+        {
+           printf("You Enter Invalid Minutes Input: Please Enter Between 0-59.\n");
+           return 0;
+        }
+        if(S >= 60 || S < 0)
+        {
+          printf("You Enter Invalid Seconds Input: Please Enter Between 0-59.\n");
+          return 0;
         }
     }
     printf("Enter FLIGHT TIME in seconds: \n");
@@ -87,12 +108,12 @@ main()
         if(leftover == 1)
         {
          printf("The LANDING will take place at %d hours, %d minutes, %d seconds (+%d day)", H, M, S, leftover); 
-         exit(1);
+         return 0;
         }
         else
         {
          printf("The LANDING will take place at %d hours, %d minutes, %d seconds (+%d days)", H, M, S, leftover); 
-         exit(1);
+         return 0;
         }
         }
     printf("The LANDING will take place at %d hours, %d minutes, %d seconds",H,M,S);
