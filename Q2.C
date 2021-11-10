@@ -120,4 +120,5 @@ int main()
     }
     if(H > 0 && M == 0 && S == 0)
     printf("The LANDING will take place at %d hours, %d seconds",H,S);
+    return 0;
 }
