@@ -2,7 +2,16 @@
 #include <stdio.h>
 
 int main(){
-
+    /*
+    Parameters:
+    menu1 - the number the user is entering.
+    number1, number2, number3 - are used for calculating the fibonnaci sum.
+    loop - parameters for coming back to the menu option (c/d option).
+    digit, order, helper,factor,temp - are used in order to check if the digits are in ascending order.
+    i,j,k - parameters for the for loops in triangle option.
+    subexit - for the exit option in the switch - sub switch for yes/no option.
+    letteral1,letteral - input char for the switches.
+    */
 	int menu1 = 0;
 	int factorial = 0;
 	int i = 0;
@@ -10,10 +19,10 @@ int main(){
 	int number2 = 1;
 	int number3 = 0;
 	int sumfib = 0;
-   	int factor = 1;
-    	int loop = 0;
-    	int negative = 0;
-    	int digit, order, helper, submenu1, temp, j, k;
+    int factor = 1;
+    int loop = 0;
+    int negative = 0;
+    int digit, order, helper, submenu1, temp, j, k;
 	char subexit, letteral1, letteral;
 	/*
 	menu1 - option 1 - one digit positive number.
