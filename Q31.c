@@ -111,7 +111,7 @@ int main(){
                     digit = submenu1 % 10; /*seperate the digits in the number*/
                     submenu1 = submenu1 / 10; /*to decrese the number*/
                     helper = submenu1 % 10;
-                    if(helper > digit)
+                    if(helper > digit || helper == digit)
                     {
                         order = 1;
                         printf("The digits are not in ascending order.\n");
