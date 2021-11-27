@@ -98,6 +98,11 @@ int main(){
 		{
 			printf("please your number: \n");
 			scanf("%d", &submenu1);
+			if(submenu1<10)
+			{
+			    printf("You have entered Invalid input, please enter multi-digit number:\n");
+			    scanf("%d",&submenu1);
+			}
 			printf("Enter your choice:\n");
 			printf("a - check, are the digits in ascending order?\n");
 			printf("b - print each dgit on a separate line (left digit will be first)\n");
@@ -106,6 +111,23 @@ int main(){
 			switch (letteral1)
 			{
 				case 'a':
+				if(submenu1<0)
+				{
+				    while(submenu1<0)
+                {
+                    digit = submenu1 % 10; /*seperate the digits in the number*/
+                    submenu1 = submenu1 / 10; /*to decrese the number*/
+                    helper = submenu1 % 10;
+                    if(helper > digit || helper == digit)
+                    {
+                        order = 1;
+                        printf("The digits are not in ascending order.\n");
+                        break;
+                    }
+                    else if(helper < digit)
+                    order = 0;
+                }
+				}
 				while(submenu1>0)
                 {
                     digit = submenu1 % 10; /*seperate the digits in the number*/
