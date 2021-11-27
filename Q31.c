@@ -11,6 +11,7 @@ int main(){
     i,j,k - parameters for the for loops in triangle option.
     subexit - for the exit option in the switch - sub switch for yes/no option.
     letteral1,letteral - input char for the switches.
+    negative - flag that tells if the number is negative for option2.
     */
 	int menu1 = 0;
 	int factorial = 0;
