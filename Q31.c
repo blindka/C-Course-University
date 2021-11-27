@@ -10,10 +10,15 @@ int main(){
 	int number2 = 1;
 	int number3 = 0;
 	int sumfib = 0;
-    int factor = 1;
-    int loop = 0;
-    int digit, order, helper, submenu1, temp, j, k;
+   	int factor = 1;
+    	int loop = 0;
+    	int negative = 0;
+    	int digit, order, helper, submenu1, temp, j, k;
 	char subexit, letteral1, letteral;
+	/*
+	menu1 - option 1 - one digit positive number.
+	menu2 - option 2 - multi digit number.
+	*/
 	while(menu1!= 1 && menu1 != 2)
 	{
 		printf("what is your option:\n1-one-digit nunber\n2-number with an indefinite amount of digits\n");
@@ -21,6 +26,13 @@ int main(){
 		if (menu1 != 1 && menu1 != 2)
 			printf("You have enterd invalid input, Please Enter again.\n");
 	}
+	/*
+	Option 1: switch - case a - factorial
+	                   case b - fibonnaci sum and numbers.
+	                   case c - triangle.
+	                   case d - exit or restart.
+	                   default - wrong option.
+	*/
 	do
 	{
 	    if(menu1 == 2)
@@ -91,6 +103,12 @@ int main(){
 		}
 	}
 	while((loop == 1 || menu1 == 1));
+	/*
+	Option 2: switch - case a - ascending order.
+	                   case b - seperate digits.
+	                   case c - exit or restart.
+	                   default - wrong option.
+	*/
     do
 	{
         loop = 0;
@@ -98,9 +116,14 @@ int main(){
 		{
 			printf("please your number: \n");
 			scanf("%d", &submenu1);
-			if(submenu1<10)
+			if(submenu1<0)
+			negative = 1;
+			if((submenu1<10 && negative == 0) || (submenu1>-9 && negative == 1))
 			{
-			    printf("You have entered Invalid input, please enter multi-digit number:\n");
+			    if(submenu1>-9 && negative == 1)
+			    printf("You have entered one digit negative number, please enter multi-digit number:\n");
+			    if(submenu1<10 && negative == 0)
+			    printf("You have entered one digit positive number, please enter multi-digit number:\n");
 			    scanf("%d",&submenu1);
 			}
 			printf("Enter your choice:\n");
@@ -118,15 +141,17 @@ int main(){
                     digit = submenu1 % 10; /*seperate the digits in the number*/
                     submenu1 = submenu1 / 10; /*to decrese the number*/
                     helper = submenu1 % 10;
-                    if(helper > digit || helper == digit)
+                    submenu1 = submenu1 / 10;
+                    if(helper < digit || helper == digit)
                     {
                         order = 1;
                         printf("The digits are not in ascending order.\n");
                         break;
                     }
-                    else if(helper < digit)
+                    else if(helper > digit)
                     order = 0;
                 }
+                printf("%d %d %d",submenu1,helper,digit);
 				}
 				while(submenu1>0)
                 {
