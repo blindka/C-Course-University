@@ -4,29 +4,27 @@
 int main(){
 
 	int menu1 = 0;
-	int submenu1;
-	char letteral;
 	int factorial = 0;
 	int i = 0;
 	int number1 = 0;
-	int number2 = 0;
-	int number3 = 1;
+	int number2 = 1;
+	int number3 = 0;
 	int sumfib = 0;
     int factor = 1;
     int loop = 0;
-    int digit, order, helper;
-    int temp;
-	int j, k;
-	char subexit, letteral1;
+    int digit, order, helper, submenu1, temp, j, k;
+	char subexit, letteral1, letteral;
 	while(menu1!= 1 && menu1 != 2)
 	{
-		printf("what is your option:\n 1-one-digit nunber\n 2-number with an indefinite amount of digits\n");
+		printf("what is your option:\n1-one-digit nunber\n2-number with an indefinite amount of digits\n");
 		scanf("%d", &menu1);
 		if (menu1 != 1 && menu1 != 2)
 			printf("You have enterd invalid input, Please Enter again.\n");
 	}
 	do
 	{
+	    if(menu1 == 2)
+	    break;
 	    loop = 0;
 		printf("Enter a single digit number\n");
 		scanf("%d" ,&submenu1);
@@ -54,13 +52,13 @@ int main(){
 		case 'b':
 			while (number1 <= submenu1)
 			{
-				submenu1 += number1;
+				sumfib += number1;
 				printf("%d ", number1);
 				number3 = number1 + number2;
 				number1 = number2;
 				number2 = number3;
 			}
-			printf("\nThe sum of fibonnaci i: %d\n", submenu1);
+			printf("\nThe sum of fibonnaci i: %d\n", sumfib);
 			return 0;
 		case 'c':
 			for (i = 1; i <= submenu1; i++)
@@ -89,6 +87,7 @@ int main(){
 			break;
 			default:
 			printf("You have choosen an option that doesn't exist, please between the characters: a to d.\n");
+			return 0;
 		}
 	}
 	while((loop == 1 || menu1 == 1));
@@ -123,7 +122,7 @@ int main(){
                 }
                 if(order == 0)
                 printf("The digits in ascending order.\n");
-                break;
+                return 0;
                 case 'b':
                 temp=submenu1;
                 while(temp){
@@ -153,6 +152,7 @@ int main(){
 			}
 			default:
 			printf("You have choosen an option that doesn't exist, please between the characters: a to c.\n");
+			return 0;
 		}
 		}
 }
